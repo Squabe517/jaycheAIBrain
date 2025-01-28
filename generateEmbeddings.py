@@ -116,7 +116,6 @@ def embed_text_with_openai(text, model_name="text-embedding-ada-002"):
     if not text.strip():
         raise ValueError("Input text is empty. Please provide a valid string.")
 
-    print(text)
     # 2. Call the OpenAI Embedding API
     response = client.embeddings.create(
         input=text,
@@ -124,7 +123,6 @@ def embed_text_with_openai(text, model_name="text-embedding-ada-002"):
     )
     # 3. Extract the embedding from the API response
     embedding = response.data[0].embedding
-    print(embedding)
 
     # 4. Return the embedding as a list of floats
     return embedding
@@ -294,28 +292,32 @@ def store_in_weaviate(chunks, embeddings, labels, class_name):
         raise ValueError("chunks, embeddings, and labels must all have the same length.")
     
     # Prepare the data for batching
+    
     data_objects = []
     for i, chunk in enumerate(chunks):
         data_object = {
-            "collection_name": class_name,  # The name of the class
             "properties": {
                 "text": chunk,              # The text chunk
-                "label": str(labels[i]),  # Label from clustered data
+                "label": str(labels[i]),
             },
             "vector": embeddings[i],  # Custom embedding
         }
-        data_objects.append(data_object)    
+        data_objects.append(data_object)
         
     
     # Initialize the Weaviate client
     client = weaviate.connect_to_local()
+    collection = client.collections.get(class_name)
     
-    # Perform batch import
-    results = client.data.batch(data_objects)
+    ObjectCount = 0;
+    with collection.batch.dynamic() as batch:
+        for i, data_object in enumerate(data_objects):
+            print("Added Object: " + str(batch.add_object(
+                properties = data_object["properties"],
+                vector = data_object["vector"]
+            )))
+        if batch.number_errors:
+            print(f"Failed to add {len(batch.failed_objects)} objects.")
+            for failed in batch.failed_objects:
+                print(f"Failed object UUID: {failed['uuid']}, Error: {failed['result']['errors']}")
 
-    # Print results
-    for result in results:
-        if result.success:
-            print(f"Object {result.id} stored successfully!")
-        else:
-            print(f"Failed to store object: {result.error}")

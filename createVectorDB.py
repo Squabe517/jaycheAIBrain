@@ -4,7 +4,7 @@ from weaviate.connect import ConnectionParams, ProtocolParams
 from weaviate.classes.init import AdditionalConfig, Timeout
 import weaviate.classes as wvc
 
-def create_vector_db(weaviate_url, class_name):
+def create_vector_db(class_name):
     """
     Creates (or updates) a Weaviate schema class for storing text and labels with external embeddings.
     
@@ -38,6 +38,16 @@ def create_vector_db(weaviate_url, class_name):
         "vectorizer_config": wvc.config.Configure.Vectorizer.none(),  # Specify no vectorizer
         "properties": [
             wvc.config.Property(
+                name="conversation",
+                data_type=wvc.config.DataType.TEXT,
+                description="The text chunk to be stored and queried semantically.",
+            ),
+            wvc.config.Property(
+                name="label",
+                data_type=wvc.config.DataType.TEXT,
+                description="Any label or category associated with the chunk.",
+            ),
+            wvc.config.Property(
                 name="text",
                 data_type=wvc.config.DataType.TEXT,
                 description="The text chunk to be stored and queried semantically.",
@@ -50,7 +60,7 @@ def create_vector_db(weaviate_url, class_name):
         ],
     }
     
-    #     Check if the class already exists
+    # Check if the class already exists
     existing_classes = []
     for collection in client.collections.list_all():
         print(collection)

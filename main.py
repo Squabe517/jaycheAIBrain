@@ -13,7 +13,7 @@ def load_embeddings(filename):
         return json.load(f)
 
 # Create the vector database
-# create_vector_db("http://localhost:8080", "BookChunks")
+create_vector_db("BookChunks")
 
 # Load the book text
 bookText = extract_text_from_pdf("beyond.pdf")
@@ -34,7 +34,8 @@ embeddings = []
 embeddings = load_embeddings("embeddings.json")
 
 # Generate the vector database
-clusteredData = cluster_embeddings(embeddings, 10, visualize=False)
-
-# Store in Weaviate
+clusteredData = cluster_embeddings(embeddings, 10, visualize=True)
+# print(f"Chunks: {len(chunks)}\n Embeddings: {len(embeddings)}\nLabels: {len(clusteredData[0])}\nCentroids: {len(clusteredData[1])}")
+# # Store in Weaviate
 store_in_weaviate(chunks, embeddings, clusteredData[0], "BookChunks")
+
