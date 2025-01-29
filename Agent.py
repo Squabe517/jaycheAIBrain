@@ -25,13 +25,11 @@ class MemoryFilterAgent(Agent):
         self.memory = []
         
     def store_memory(self, memory, keywords):
-        vector = embed_text_with_openai(memory)
         data_object = {
             "properties": {
                 "text": memory,
                 "keywords": keywords,
             },
-            "vector": vector
         }
         weaviate_store_memory(data_object, "EpisodicMemory")
         print(f"Stored memory: {memory}")
@@ -199,7 +197,20 @@ class MemoryFilterAgent(Agent):
         
 
         
-gateKeeper = MemoryFilterAgent("GateKeeper");
+gateKeeper = MemoryFilterAgent("GateKeeper")
 
 
-gateKeeper.evaluate_memory("remember that I live in ohio")
+prompts_to_store = [
+    "User's favorite color: blue",
+    "User's dietary restriction: vegetarian",
+    "Preferred communication style: informal",
+    "Frequent travel destination: coastal cities",
+    "Known allergies: peanuts, shellfish",
+    "User's default mood descriptor: positive",
+    "Frequently searched topics: AI, robotics, philosophy",
+    "Languages spoken: English, Spanish",
+    "Preferred music genres: jazz, electronic",
+    "Favorite leisure activities: hiking, reading"
+]
+for prompt in prompts_to_store:
+    gateKeeper.evaluate_memory(prompt)

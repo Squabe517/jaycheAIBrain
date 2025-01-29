@@ -324,7 +324,12 @@ def store_in_weaviate(chunks, embeddings, labels, class_name):
 
 def weaviate_store_memory(data_object, class_name, debug=False):
     try: 
-        client = weaviate.connect_to_local()
+        api_key = os.getenv("OPENAI_API_KEY")
+        client = weaviate.connect_to_local(
+                headers={
+                    "X-OpenAI-Api-Key": api_key
+                }
+            )
         collection = client.collections.get(class_name)
         uuid = collection.data.insert(data_object)
         if debug:
@@ -335,7 +340,13 @@ def weaviate_store_memory(data_object, class_name, debug=False):
 def weaviate_hybrid_search(query, keywords, class_name, debug=False):
     query_vector = embed_text_with_openai(query)
     try:
-        client = weaviate.connect_to_local()
+        load_dotenv()
+        api_key = os.getenv("OPENAI_API_KEY")
+        client = weaviate.connect_to_local(
+                headers={
+                    "X-OpenAI-Api-Key": api_key
+                }
+            )
         collection = client.collections.get(class_name)
         
         response = collection.query.hybrid(
@@ -353,6 +364,3 @@ def weaviate_hybrid_search(query, keywords, class_name, debug=False):
     finally:
         client.close()
 
-resp = weaviate_hybrid_search("please remember my name is Gaige", "Name", "EpisodicMemory", debug=True)
-
-print(resp)
