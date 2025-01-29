@@ -39,6 +39,7 @@ def querySimilarity(query, class_name):
         response = collection.query.near_vector(
             near_vector=queryVector, # your query vector goes here
             limit=5,
+            certainty=0,
             return_metadata=MetadataQuery(distance=True)
         )
         return response
@@ -55,8 +56,14 @@ def deleteCollection(class_name):
         
 
 # Query for similar results
-queryResult = querySimilarity("How the noblest stands right next to the most base!", "BookChunks")
-for i in queryResult.objects:
-    print(i.properties)
-    print(i.metadata.distance)
+# queryResult = querySimilarity("location", "EpisodicMemory")
+# for i in queryResult.objects:
+#     print(i.properties)
+#     print(i.metadata.distance)
+
+# readAllDB("EpisodicMemory")
     
+querySimilarity("Gaige", "EpisodicMemory")
+
+
+# deleteCollection("EpisodicMemory")

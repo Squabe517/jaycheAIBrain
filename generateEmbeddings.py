@@ -9,6 +9,7 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
 import weaviate
+from weaviate.classes.query import MetadataQuery, Filter
 
 
 load_dotenv()
@@ -321,3 +322,37 @@ def store_in_weaviate(chunks, embeddings, labels, class_name):
             for failed in batch.failed_objects:
                 print(f"Failed object UUID: {failed['uuid']}, Error: {failed['result']['errors']}")
 
+def weaviate_store_memory(data_object, class_name, debug=False):
+    try: 
+        client = weaviate.connect_to_local()
+        collection = client.collections.get(class_name)
+        uuid = collection.data.insert(data_object)
+        if debug:
+            print(f"{data_object['properties']['text']} stored with UUID: {uuid}")
+    finally:
+        client.close()
+    
+def weaviate_hybrid_search(query, keywords, class_name, debug=False):
+    query_vector = embed_text_with_openai(query)
+    try:
+        client = weaviate.connect_to_local()
+        collection = client.collections.get(class_name)
+        
+        response = collection.query.hybrid(
+            query=keywords,
+            vector=query_vector,
+            limit=5,
+            alpha=0.75, 
+            return_metadata=MetadataQuery(distance=True)
+        )
+        if debug:
+            for obj in response.objects:
+                print(obj.properties)
+                print(obj.metadata.distance)
+        return response
+    finally:
+        client.close()
+
+resp = weaviate_hybrid_search("please remember my name is Gaige", "Name", "EpisodicMemory", debug=True)
+
+print(resp)
